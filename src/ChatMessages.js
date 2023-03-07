@@ -11,8 +11,13 @@ const ChatMessages = () => {
 
   const updateMessage = (key, value) => {
     setQuestion(key);
-    setMessages((map) => new Map(map.set(`Q: ${key}`, "A: ")));
+    setMessages((map) => new Map(map.set(`user: ${key}`, "gpt: ")));
     setMessage("");
+  };
+
+  const clearMessages = () => {
+    setMessages(new Map());
+    setQuestion("Olá, vamos começar uma nova conversa.");
   };
 
   const onChangeHandler = (event) => {
@@ -31,8 +36,13 @@ const ChatMessages = () => {
 
     const getDavinciResponse = async (question) => {
       let query = "";
-      for (let [key, value] of messages) {
-        query += `${key}: ${value}\n`;
+
+      if (messages.size == 0) {
+        query += `user: ${question}`;
+      } else {
+        for (let [key, value] of messages) {
+          query += `${key}: ${value}\n`;
+        }
       }
 
       const options = {
@@ -48,7 +58,7 @@ const ChatMessages = () => {
           botResponse += message.content;
         });
         setMessages(
-          (map) => new Map(map.set(`Q: ${question}`, `A: ${botResponse}`))
+          (map) => new Map(map.set(`user: ${question}`, `gpt: ${botResponse}`))
         );
       } catch (e) {
         console.log(e);
@@ -62,8 +72,8 @@ const ChatMessages = () => {
 
   const renderMessages = () => {
     return Array.from(messages).map(([key, value], index) => {
-      const question = key.substring(3);
-      const answer = value.substring(3);
+      const question = key.substring(6);
+      const answer = value.substring(5);
       const isLoading = answer === "";
       if (isLoading) {
         return (
@@ -71,8 +81,8 @@ const ChatMessages = () => {
             key={`my-message-${index}`}
             k={`my-message-${index}`}
             message={question}
-            userName="afcustodioo"
-            userMail="afcustodioo@gmail.com"
+            userName="User"
+            userMail="user@gmail.com"
             isLoading={isLoading}
           />
         );
@@ -120,6 +130,9 @@ const ChatMessages = () => {
           onClick={() => updateMessage(message)}
         >
           Enviar
+        </MDBBtn>
+        <MDBBtn color="info" rounded onClick={() => clearMessages()}>
+          Limpar
         </MDBBtn>
       </MDBTypography>
     </MDBCol>
