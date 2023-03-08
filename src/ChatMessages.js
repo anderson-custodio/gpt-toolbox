@@ -28,8 +28,8 @@ const ChatMessages = () => {
     if (question.length === 0) return;
 
     const configuration = new Configuration({
-      organization: "",
-      apiKey: "",
+      organization: process.env.REACT_APP_ORGANIZATION_ID,
+      apiKey: process.env.REACT_APP_OPENAI_KEY,
     });
 
     const openai = new OpenAIApi(configuration);
@@ -37,7 +37,7 @@ const ChatMessages = () => {
     const getDavinciResponse = async (question) => {
       let query = "";
 
-      if (messages.size == 0) {
+      if (messages.size === 0) {
         query += `user: ${question}`;
       } else {
         for (let [key, value] of messages) {
