@@ -83,7 +83,7 @@ const ChatMessages = () => {
             key={`user-${index}`}
             k={`user-${index}`}
             message={m.content}
-            userName="User"
+            userName="Usuário"
             userMail="user@gmail.com"
             isLoading={loading}
           />
@@ -93,12 +93,12 @@ const ChatMessages = () => {
   };
 
   return (
-    <MDBCol md="6" lg="7" xl="8">
+    <MDBCol md="6" lg="7" xl="12">
       <MDBTypography listUnStyled>
         {renderMessages()}
         <li key="quen" className="bg-white mb-3">
           <MDBTextArea
-            label="Message"
+            label="Faça uma pergunta"
             id="textAreaExample"
             rows={4}
             onChange={onChangeHandler}

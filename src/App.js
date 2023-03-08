@@ -4,13 +4,13 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import React from "react";
 import { MDBContainer, MDBRow } from "mdb-react-ui-kit";
 import ChatMessages from "./ChatMessages";
-import ChatHistory from "./ChatHistory";
+// import ChatHistory from "./ChatHistory";
 
 export default function App() {
   return (
     <MDBContainer fluid className="py-5" style={{ backgroundColor: "#eee" }}>
       <MDBRow>
-        <ChatHistory />
+        {/* <ChatHistory /> */}
         <ChatMessages key="messages" />
       </MDBRow>
     </MDBContainer>
