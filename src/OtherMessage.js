@@ -2,6 +2,7 @@ import React from "react";
 import { MDBCard, MDBCardBody, MDBIcon, MDBCardHeader } from "mdb-react-ui-kit";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vs } from "react-syntax-highlighter/dist/esm/styles/prism";
+import gptImage from "./images/gpt.png";
 
 function getCodeAndText(message) {
   const [codeStart, codeEnd] = message.split("```");
@@ -32,7 +33,7 @@ const GptMessage = ({ message, ...props }) => {
         </MDBCardBody>
       </MDBCard>
       <img
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/800px-ChatGPT_logo.svg.png"
+        src={gptImage}
         alt="gpt icon"
         className="rounded-circle d-flex align-self-start ms-3 shadow-1-strong"
         width="60"

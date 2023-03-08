@@ -5,19 +5,29 @@ import GptMessage from "./OtherMessage";
 import { Configuration, OpenAIApi } from "openai";
 
 const ChatMessages = () => {
-  const [messages, setMessages] = useState(new Map());
+  const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const [question, setQuestion] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const updateMessage = (key, value) => {
-    setQuestion(key);
-    setMessages((map) => new Map(map.set(`user: ${key}`, "gpt: ")));
+  const configuration = new Configuration({
+    organization: process.env.REACT_APP_ORGANIZATION_ID,
+    apiKey: process.env.REACT_APP_OPENAI_KEY,
+  });
+
+  const updateMessage = (key, _value) => {
+    addItem({ role: "user", content: key });
     setMessage("");
   };
 
   const clearMessages = () => {
-    setMessages(new Map());
-    setQuestion("Olá, vamos começar uma nova conversa.");
+    const newChat = "Olá, vamos começar uma nova conversa.";
+    setMessages([]);
+    setMessage("");
+    addItem({ role: "system", content: newChat });
+  };
+
+  const addItem = (item) => {
+    setMessages((prevMessages) => [...prevMessages, item]);
   };
 
   const onChangeHandler = (event) => {
@@ -25,80 +35,58 @@ const ChatMessages = () => {
   };
 
   useEffect(() => {
-    if (question.length === 0) return;
-
-    const configuration = new Configuration({
-      organization: process.env.REACT_APP_ORGANIZATION_ID,
-      apiKey: process.env.REACT_APP_OPENAI_KEY,
-    });
+    if (
+      messages.length === 0 ||
+      messages[messages.length - 1].role === "assistant"
+    )
+      return;
 
     const openai = new OpenAIApi(configuration);
 
-    const getDavinciResponse = async (question) => {
-      let query = "";
-
-      if (messages.size === 0) {
-        query += `user: ${question}`;
-      } else {
-        for (let [key, value] of messages) {
-          query += `${key}: ${value}\n`;
-        }
-      }
+    const getDavinciResponse = async () => {
+      setLoading(true);
 
       const options = {
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: query }],
+        messages: messages,
       };
 
       try {
-        console.log(JSON.stringify(query));
-        const response = await openai.createChatCompletion(options);
-        let botResponse = "";
-        response.data.choices.forEach(({ message }) => {
-          botResponse += message.content;
+        await openai.createChatCompletion(options).then((response) => {
+          let botResponse = "";
+          response.data.choices.forEach(({ message }) => {
+            botResponse += message.content;
+          });
+          addItem({ role: "assistant", content: botResponse });
         });
-        setMessages(
-          (map) => new Map(map.set(`user: ${question}`, `gpt: ${botResponse}`))
-        );
       } catch (e) {
         console.log(e);
+      } finally {
+        setLoading(false);
       }
     };
 
-    getDavinciResponse(question).then((response) => {
-      console.log(response);
-    });
-  }, [question]);
+    getDavinciResponse();
+  }, [messages]);
+
+  useEffect(() => {
+    console.log(JSON.stringify(messages));
+  }, [messages]);
 
   const renderMessages = () => {
-    return Array.from(messages).map(([key, value], index) => {
-      const question = key.substring(6);
-      const answer = value.substring(5);
-      const isLoading = answer === "";
-      if (isLoading) {
-        return (
-          <MyMessage
-            key={`my-message-${index}`}
-            k={`my-message-${index}`}
-            message={question}
-            userName="User"
-            userMail="user@gmail.com"
-            isLoading={isLoading}
-          />
-        );
+    return messages.map((m, index) => {
+      if (m.role === "assistant") {
+        return <GptMessage key={`assistant-${index}`} message={m.content} />;
       } else {
         return (
-          <React.Fragment key={index}>
-            <MyMessage
-              key={`my-message-${index}`}
-              k={`my-message-${index}`}
-              message={question}
-              userName="User"
-              userMail="user@gmail.com"
-              isLoading={isLoading}
-            />
-            <GptMessage key={`gpt-message-${index}`} message={answer} />
-          </React.Fragment>
+          <MyMessage
+            key={`user-${index}`}
+            k={`user-${index}`}
+            message={m.content}
+            userName="User"
+            userMail="user@gmail.com"
+            isLoading={loading}
+          />
         );
       }
     });

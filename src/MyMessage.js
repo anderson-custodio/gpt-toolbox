@@ -1,6 +1,7 @@
 import React from "react";
 import { MDBCard, MDBCardBody, MDBIcon, MDBCardHeader } from "mdb-react-ui-kit";
 // import Gravatar from "react-gravatar";
+import userImage from "./images/user.png";
 
 const MyMessage = ({ message, userName, userMail, k, isLoading }) => {
   return (
@@ -11,7 +12,7 @@ const MyMessage = ({ message, userName, userMail, k, isLoading }) => {
         size={60}
       /> */}
       <img
-        src="https://img.icons8.com/ios/256/user.png"
+        src={userImage}
         alt="avatar"
         className="rounded-circle d-flex align-self-start me-3 shadow-1-strong"
         width="60"
