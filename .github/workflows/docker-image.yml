@@ -1,18 +1,30 @@
-name: Docker Image CI
+name: Publish Docker image
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
+
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+  IMAGE_NAME: my-docker-image
 
 jobs:
-
-  build:
-
+  build-and-publish:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag afcustodioo/gpt-toolbox:latest
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Build Docker image
+        run: docker build -t $IMAGE_NAME .
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_PASSWORD }}
+      
+      - name: Push Docker image to Docker Hub
+        run: docker push $DOCKERHUB_USERNAME/$IMAGE_NAME
