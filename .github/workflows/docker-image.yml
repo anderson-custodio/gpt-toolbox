@@ -8,7 +8,7 @@ on:
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
-  IMAGE_NAME: my-docker-image
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/gpt-toolbox:latest
 
 jobs:
   build-and-publish:
@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-      
+
       - name: Build Docker image
         run: docker build -t $IMAGE_NAME .
 
@@ -25,6 +25,6 @@ jobs:
         with:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ env.DOCKERHUB_PASSWORD }}
-      
+
       - name: Push Docker image to Docker Hub
         run: docker push $DOCKERHUB_USERNAME/$IMAGE_NAME
