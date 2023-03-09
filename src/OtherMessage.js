@@ -3,6 +3,7 @@ import { MDBCard, MDBCardBody, MDBIcon, MDBCardHeader } from "mdb-react-ui-kit";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vs } from "react-syntax-highlighter/dist/esm/styles/prism";
 import gptImage from "./images/gpt.png";
+import TextWithCodeAndList from "./TextWithCodeAndList";
 
 function getCodeAndText(message) {
   const [codeStart, codeEnd] = message.split("```");
@@ -30,6 +31,7 @@ const GptMessage = ({ message, ...props }) => {
               {code}
             </SyntaxHighlighter>
           ) : null}
+          {/* <TextWithCodeAndList text={text} /> */}
         </MDBCardBody>
       </MDBCard>
       <img

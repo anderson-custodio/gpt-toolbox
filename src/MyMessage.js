@@ -1,5 +1,11 @@
 import React from "react";
-import { MDBCard, MDBCardBody, MDBIcon, MDBCardHeader } from "mdb-react-ui-kit";
+import {
+  MDBCard,
+  MDBCardBody,
+  MDBIcon,
+  MDBCardHeader,
+  MDBSpinner,
+} from "mdb-react-ui-kit";
 // import Gravatar from "react-gravatar";
 import userImage from "./images/user.png";
 
@@ -27,9 +33,9 @@ const MyMessage = ({ message, userName, userMail, k, isLoading }) => {
         <MDBCardBody>
           <p className="mb-0">{message}</p>
           {isLoading ? (
-            <div className="spinner-border spinner-border-sm" role="status">
+            <MDBSpinner grow color="success" size="sm">
               <span className="visually-hidden">Loading...</span>
-            </div>
+            </MDBSpinner>
           ) : null}
         </MDBCardBody>
       </MDBCard>
