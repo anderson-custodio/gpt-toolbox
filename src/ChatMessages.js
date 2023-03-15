@@ -5,6 +5,7 @@ import {
   MDBTypography,
   MDBTextArea,
   MDBBadge,
+  MDBSwitch,
 } from "mdb-react-ui-kit";
 import MyMessage from "./MyMessage";
 import GptMessage from "./OtherMessage";
@@ -20,6 +21,8 @@ const ChatMessages = () => {
   const [totalTokens, setTotalTokens] = useState(0);
 
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(-1);
+
+  const [code, setCode] = useState(false);
 
   const configuration = new Configuration({
     organization: process.env.REACT_APP_ORGANIZATION_ID,
@@ -64,26 +67,40 @@ const ChatMessages = () => {
       setLoadingMessageIndex(messages.length - 1);
       setLoading(true);
 
-      const options = {
-        model: "gpt-3.5-turbo",
-        messages: messages,
-        temperature: 0.7,
-      };
-
       try {
-        await openai.createChatCompletion(options).then((response) => {
-          let botResponse = "";
-          console.log(JSON.stringify(response));
-          response.data.choices.forEach(({ message }) => {
-            botResponse += message.content;
+        if (code) {
+          let response = await openai.createCompletion(getOptions("code"));
+          let botResponse = "```";
+          response.data.choices.forEach((message) => {
+            botResponse += message.text;
           });
-          addItem({ role: "assistant", content: botResponse });
+          botResponse += "```";
+          console.log(botResponse);
+          addItem({
+            role: "assistant",
+            content: botResponse.replace(/^[\s\t]*\+/gm, ""),
+          });
           setPromptTokens(promptTokens + response.data.usage.prompt_tokens);
           setCompletionTokens(
             completionTokens + response.data.usage.completion_tokens
           );
           setTotalTokens(totalTokens + response.data.usage.total_tokens);
-        });
+        } else {
+          await openai
+            .createChatCompletion(getOptions("chat"))
+            .then((response) => {
+              let botResponse = "";
+              response.data.choices.forEach(({ message }) => {
+                botResponse += message.content;
+              });
+              addItem({ role: "assistant", content: botResponse });
+              setPromptTokens(promptTokens + response.data.usage.prompt_tokens);
+              setCompletionTokens(
+                completionTokens + response.data.usage.completion_tokens
+              );
+              setTotalTokens(totalTokens + response.data.usage.total_tokens);
+            });
+        }
       } catch (e) {
         console.log(e);
       } finally {
@@ -95,9 +112,29 @@ const ChatMessages = () => {
     getDavinciResponse();
   }, [messages]);
 
-  useEffect(() => {
-    console.log(JSON.stringify(messages));
-  }, [messages]);
+  // useEffect(() => {
+  //   console.log(JSON.stringify(messages));
+  // }, [messages]);
+
+  const getOptions = (type) => {
+    if (type === "code") {
+      return {
+        model: "code-davinci-002",
+        prompt: messages[messages.length - 1].content,
+        temperature: 0,
+        max_tokens: 256,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0,
+      };
+    } else {
+      return {
+        model: "gpt-3.5-turbo",
+        messages: messages,
+        temperature: 0.7,
+      };
+    }
+  };
 
   const renderMessages = () => {
     return messages.map((m, index) => {
@@ -148,6 +185,14 @@ const ChatMessages = () => {
         >
           Enviar
         </MDBBtn>
+        <br />
+        <br />
+        <MDBSwitch
+          id="genCode"
+          label="Gerar código"
+          checked={code}
+          onChange={() => setCode(!code)}
+        />
         <br />
         <br />
         <MDBBadge className="ms-2">Prompt Tokens: {promptTokens}</MDBBadge>
