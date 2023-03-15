@@ -39,9 +39,9 @@ const ChatMessages = () => {
     setMessages([]);
     setMessage("");
 
-    setPromptTokens(0);
-    setCompletionTokens(0);
-    setTotalTokens(0);
+    // setPromptTokens(0);
+    // setCompletionTokens(0);
+    // setTotalTokens(0);
 
     addItem({ role: "system", content: newChat });
   };
@@ -155,6 +155,14 @@ const ChatMessages = () => {
     });
   };
 
+  const getPrice = () => {
+    if (code) {
+      return ((totalTokens * 0.02) / 1000) * 5.3;
+    } else {
+      return ((totalTokens * 0.002) / 1000) * 5.3;
+    }
+  };
+
   return (
     <MDBCol md="6" lg="7" xl="12">
       <MDBTypography listUnStyled>
@@ -200,6 +208,7 @@ const ChatMessages = () => {
           Completion Tokens: {completionTokens}
         </MDBBadge>
         <MDBBadge className="ms-2">Total Tokens: {totalTokens}</MDBBadge>
+        <MDBBadge className="ms-2">Custo R$: {getPrice()}</MDBBadge>
       </MDBTypography>
     </MDBCol>
   );
