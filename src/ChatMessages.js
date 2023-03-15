@@ -23,6 +23,7 @@ const ChatMessages = () => {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(-1);
 
   const [code, setCode] = useState(false);
+  const [questions, setQuestions] = useState([]);
 
   const configuration = new Configuration({
     organization: process.env.REACT_APP_ORGANIZATION_ID,
@@ -116,6 +117,38 @@ const ChatMessages = () => {
   //   console.log(JSON.stringify(messages));
   // }, [messages]);
 
+  useEffect(() => {
+    if (
+      code ||
+      !messages[messages.length - 2] ||
+      !messages[messages.length - 2].content
+    ) {
+      return;
+    }
+    const getDavinciResponse = async () => {
+      const openai = new OpenAIApi(configuration);
+      await openai
+        .createChatCompletion(getOptions("questions"))
+        .then((response) => {
+          let botResponse = "";
+          response.data.choices.forEach(({ message }) => {
+            botResponse += message.content;
+          });
+          setPromptTokens(promptTokens + response.data.usage.prompt_tokens);
+          setCompletionTokens(
+            completionTokens + response.data.usage.completion_tokens
+          );
+          const separators = /[;,|\-\n]/;
+          let questions = botResponse.split(separators);
+          setTotalTokens(totalTokens + response.data.usage.total_tokens);
+          setQuestions(questions);
+          console.log(JSON.stringify(questions));
+        });
+    };
+
+    getDavinciResponse();
+  }, [messages]);
+
   const getOptions = (type) => {
     if (type === "code") {
       return {
@@ -127,10 +160,23 @@ const ChatMessages = () => {
         frequency_penalty: 0,
         presence_penalty: 0,
       };
-    } else {
+    } else if (type === "chat") {
       return {
         model: "gpt-3.5-turbo",
         messages: messages,
+        temperature: 0.7,
+      };
+    } else {
+      return {
+        model: "gpt-3.5-turbo",
+        messages: [
+          ...messages,
+          {
+            role: "user",
+            content:
+              "Que perguntas podem ser feitas sobre a sua última resposta?",
+          },
+        ],
         temperature: 0.7,
       };
     }
@@ -159,8 +205,28 @@ const ChatMessages = () => {
     if (code) {
       return ((totalTokens * 0.02) / 1000) * 5.3;
     } else {
-      return ((totalTokens * 0.002) / 1000) * 5.3;
+      let price = ((totalTokens * 0.002) / 1000) * 5.3;
+      let formated = Math.trunc(price * 100) / 100;
+      return formated.toFixed(2);
     }
+  };
+
+  const renderQuestions = () => {
+    return questions.map((q, index) => {
+      if (index === 0) {
+        return;
+      }
+      return (
+        <MDBBadge className="ms-2" onClick={() => clickQuestion(q)}>
+          {q}
+        </MDBBadge>
+      );
+    });
+  };
+
+  const clickQuestion = (question) => {
+    setMessage(question);
+    // updateMessage(message);
   };
 
   return (
@@ -202,13 +268,12 @@ const ChatMessages = () => {
           onChange={() => setCode(!code)}
         />
         <br />
+        {renderQuestions()}
         <br />
-        <MDBBadge className="ms-2">Prompt Tokens: {promptTokens}</MDBBadge>
-        <MDBBadge className="ms-2">
-          Completion Tokens: {completionTokens}
-        </MDBBadge>
-        <MDBBadge className="ms-2">Total Tokens: {totalTokens}</MDBBadge>
-        <MDBBadge className="ms-2">Custo R$: {getPrice()}</MDBBadge>
+        <br />
+        <span class="badge rounded-pill badge-warning">
+          Custo R$: {getPrice()}
+        </span>
       </MDBTypography>
     </MDBCol>
   );
