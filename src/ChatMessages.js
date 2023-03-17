@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   MDBCol,
+  MDBRow,
   MDBBtn,
   MDBTypography,
   MDBTextArea,
@@ -54,6 +55,20 @@ const ChatMessages = () => {
   const onChangeHandler = (event) => {
     setMessage(event.target.value);
   };
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current.scrollIntoView({
+      behavior: "smooth",
+      alignToTop: false,
+      block: "end",
+    });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     if (
@@ -230,52 +245,65 @@ const ChatMessages = () => {
   };
 
   return (
-    <MDBCol md="6" lg="7" xl="12">
-      <MDBTypography listUnStyled>
-        {renderMessages()}
-        <li key="quen" className="bg-white mb-3">
-          <MDBTextArea
-            label="Faça uma pergunta"
-            id="textAreaExample"
-            rows={4}
-            onChange={onChangeHandler}
-            value={message}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                updateMessage(message);
-              }
-            }}
-          />
-        </li>
-        <MDBBtn color="info" rounded onClick={() => clearMessages()}>
-          Limpar
-        </MDBBtn>
-        <MDBBtn
-          color="info"
-          rounded
-          className="float-end"
-          onClick={() => updateMessage(message)}
-        >
-          Enviar
-        </MDBBtn>
-        <br />
-        <br />
-        <MDBSwitch
-          id="genCode"
-          label="Gerar código"
-          checked={code}
-          onChange={() => setCode(!code)}
-        />
-        <br />
-        {renderQuestions()}
-        <br />
-        <br />
-        <span class="badge rounded-pill badge-warning">
-          Custo R$: {getPrice()}
-        </span>
-      </MDBTypography>
-    </MDBCol>
+    <>
+      <MDBRow ref={messagesEndRef}>
+        <MDBCol md="6" lg="7" xl="12">
+          <MDBTypography listUnStyled>{renderMessages()}</MDBTypography>
+        </MDBCol>
+      </MDBRow>
+      <MDBRow>
+        <MDBCol md="6" lg="7" xl="12">
+          <MDBTypography listUnStyled>
+            <li key="quen" className="bg-white mb-3">
+              <MDBTextArea
+                label="Faça uma pergunta"
+                id="textAreaExample"
+                rows={4}
+                onChange={onChangeHandler}
+                value={message}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    updateMessage(message);
+                  }
+                }}
+              />
+            </li>
+            <MDBBtn color="info" rounded onClick={() => clearMessages()}>
+              Limpar
+            </MDBBtn>
+            <MDBBtn
+              color="info"
+              rounded
+              className="float-end"
+              onClick={() => updateMessage(message)}
+            >
+              Enviar
+            </MDBBtn>
+          </MDBTypography>
+        </MDBCol>
+        <MDBRow>
+          <MDBCol md="6" lg="7" xl="12">
+            <MDBTypography listUnStyled>
+              <br />
+              <MDBSwitch
+                id="genCode"
+                label="Gerar código"
+                checked={code}
+                onChange={() => setCode(!code)}
+              />
+              <br />
+              {renderQuestions()}
+              <br />
+              <br />
+              <span class="badge rounded-pill badge-warning">
+                Custo R$: {getPrice()}
+              </span>
+            </MDBTypography>
+          </MDBCol>
+        </MDBRow>
+      </MDBRow>
+    </>
   );
 };
 
