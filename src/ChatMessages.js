@@ -24,6 +24,7 @@ const ChatMessages = () => {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(-1);
 
   const [code, setCode] = useState(false);
+  const [gpt4, setGpt4] = useState(false);
   const [questions, setQuestions] = useState([]);
 
   const configuration = new Configuration({
@@ -177,7 +178,7 @@ const ChatMessages = () => {
       };
     } else if (type === "chat") {
       return {
-        model: "gpt-3.5-turbo",
+        model: gpt4 ? "gpt-4" : "gpt-3.5-turbo",
         messages: messages,
         temperature: 0.7,
       };
@@ -291,6 +292,12 @@ const ChatMessages = () => {
                 label="Gerar código"
                 checked={code}
                 onChange={() => setCode(!code)}
+              />
+              <MDBSwitch
+                id="gpt4"
+                label="GPT-4"
+                checked={gpt4}
+                onChange={() => setGpt4(!gpt4)}
               />
               <br />
               {renderQuestions()}
