@@ -145,7 +145,6 @@ const ChatMessages = () => {
         let questions = botResponse.split(separators);
         setTotalTokens(totalTokens + response.data.usage.total_tokens);
         setQuestions(questions);
-        console.log(JSON.stringify(questions));
       });
     };
 
