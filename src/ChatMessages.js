@@ -295,7 +295,7 @@ const ChatMessages = () => {
               />
               <MDBSwitch
                 id="gpt4"
-                label="GPT-4"
+                label="Usar GPT-4?"
                 checked={gpt4}
                 onChange={() => setGpt4(!gpt4)}
               />
