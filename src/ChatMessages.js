@@ -13,6 +13,7 @@ import GptMessage from "./OtherMessage";
 import { Configuration, OpenAIApi } from "openai";
 
 const ChatMessages = () => {
+  const newChat = "Olá, vamos começar uma nova conversa.";
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,6 @@ const ChatMessages = () => {
 
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(-1);
 
-  const [code, setCode] = useState(false);
   const [gpt4, setGpt4] = useState(false);
   const [questions, setQuestions] = useState([]);
 
@@ -38,14 +38,8 @@ const ChatMessages = () => {
   };
 
   const clearMessages = () => {
-    const newChat = "Olá, vamos começar uma nova conversa.";
     setMessages([]);
     setMessage("");
-
-    // setPromptTokens(0);
-    // setCompletionTokens(0);
-    // setTotalTokens(0);
-
     addItem({ role: "system", content: newChat });
   };
 
@@ -84,40 +78,25 @@ const ChatMessages = () => {
       setLoadingMessageIndex(messages.length - 1);
       setLoading(true);
 
+      const options = {
+        model: gpt4 ? "gpt-4" : "gpt-3.5-turbo",
+        messages: messages,
+        temperature: 0.7,
+      };
+
       try {
-        if (code) {
-          let response = await openai.createCompletion(getOptions("code"));
-          let botResponse = "```";
-          response.data.choices.forEach((message) => {
-            botResponse += message.text;
+        await openai.createChatCompletion(options).then((response) => {
+          let botResponse = "";
+          response.data.choices.forEach(({ message }) => {
+            botResponse += message.content;
           });
-          botResponse += "```";
-          console.log(botResponse);
-          addItem({
-            role: "assistant",
-            content: botResponse.replace(/^[\s\t]*\+/gm, ""),
-          });
+          addItem({ role: "assistant", content: botResponse });
           setPromptTokens(promptTokens + response.data.usage.prompt_tokens);
           setCompletionTokens(
             completionTokens + response.data.usage.completion_tokens
           );
           setTotalTokens(totalTokens + response.data.usage.total_tokens);
-        } else {
-          await openai
-            .createChatCompletion(getOptions("chat"))
-            .then((response) => {
-              let botResponse = "";
-              response.data.choices.forEach(({ message }) => {
-                botResponse += message.content;
-              });
-              addItem({ role: "assistant", content: botResponse });
-              setPromptTokens(promptTokens + response.data.usage.prompt_tokens);
-              setCompletionTokens(
-                completionTokens + response.data.usage.completion_tokens
-              );
-              setTotalTokens(totalTokens + response.data.usage.total_tokens);
-            });
-        }
+        });
       } catch (e) {
         console.log(e);
       } finally {
@@ -129,74 +108,49 @@ const ChatMessages = () => {
     getDavinciResponse();
   }, [messages]);
 
-  // useEffect(() => {
-  //   console.log(JSON.stringify(messages));
-  // }, [messages]);
-
   useEffect(() => {
     if (
-      code ||
-      !messages[messages.length - 2] ||
-      !messages[messages.length - 2].content
+      messages.length == 0 ||
+      messages[messages.length - 1].role == "user" ||
+      messages[messages.length - 1].role == "system" ||
+      messages[messages.length - 2].content == newChat
     ) {
       return;
     }
+
+    const options = {
+      model: "gpt-3.5-turbo",
+      messages: [
+        ...messages,
+        {
+          role: "system",
+          content: "Gere lista de perguntas sobre a sua última resposta.",
+        },
+      ],
+      temperature: 0.7,
+    };
+
     const getDavinciResponse = async () => {
       const openai = new OpenAIApi(configuration);
-      await openai
-        .createChatCompletion(getOptions("questions"))
-        .then((response) => {
-          let botResponse = "";
-          response.data.choices.forEach(({ message }) => {
-            botResponse += message.content;
-          });
-          setPromptTokens(promptTokens + response.data.usage.prompt_tokens);
-          setCompletionTokens(
-            completionTokens + response.data.usage.completion_tokens
-          );
-          const separators = /[;,|\-\n]/;
-          let questions = botResponse.split(separators);
-          setTotalTokens(totalTokens + response.data.usage.total_tokens);
-          setQuestions(questions);
-          console.log(JSON.stringify(questions));
+      await openai.createChatCompletion(options).then((response) => {
+        let botResponse = "";
+        response.data.choices.forEach(({ message }) => {
+          botResponse += message.content;
         });
+        setPromptTokens(promptTokens + response.data.usage.prompt_tokens);
+        setCompletionTokens(
+          completionTokens + response.data.usage.completion_tokens
+        );
+        const separators = /[;,|\-\n]/;
+        let questions = botResponse.split(separators);
+        setTotalTokens(totalTokens + response.data.usage.total_tokens);
+        setQuestions(questions);
+        console.log(JSON.stringify(questions));
+      });
     };
 
     getDavinciResponse();
   }, [messages]);
-
-  const getOptions = (type) => {
-    if (type === "code") {
-      return {
-        model: "code-davinci-002",
-        prompt: messages[messages.length - 1].content,
-        temperature: 0,
-        max_tokens: 256,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-      };
-    } else if (type === "chat") {
-      return {
-        model: gpt4 ? "gpt-4" : "gpt-3.5-turbo",
-        messages: messages,
-        temperature: 0.7,
-      };
-    } else {
-      return {
-        model: "gpt-3.5-turbo",
-        messages: [
-          ...messages,
-          {
-            role: "user",
-            content:
-              "Que perguntas podem ser feitas sobre a sua última resposta?",
-          },
-        ],
-        temperature: 0.7,
-      };
-    }
-  };
 
   const renderMessages = () => {
     return messages.map((m, index) => {
@@ -218,13 +172,9 @@ const ChatMessages = () => {
   };
 
   const getPrice = () => {
-    if (code) {
-      return ((totalTokens * 0.02) / 1000) * 5.3;
-    } else {
-      let price = ((totalTokens * 0.002) / 1000) * 5.3;
-      let formated = Math.trunc(price * 100) / 100;
-      return formated.toFixed(2);
-    }
+    let price = ((totalTokens * 0.002) / 1000) * 5.3;
+    let formated = Math.trunc(price * 100) / 100;
+    return formated.toFixed(2);
   };
 
   const renderQuestions = () => {
@@ -287,12 +237,6 @@ const ChatMessages = () => {
           <MDBCol md="6" lg="7" xl="12">
             <MDBTypography listUnStyled>
               <br />
-              <MDBSwitch
-                id="genCode"
-                label="Gerar código"
-                checked={code}
-                onChange={() => setCode(!code)}
-              />
               <MDBSwitch
                 id="gpt4"
                 label="Usar GPT-4?"
