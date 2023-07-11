@@ -7,6 +7,9 @@ import {
   MDBTextArea,
   MDBBadge,
   MDBSwitch,
+  MDBTable,
+  MDBTableBody,
+  MDBTableHead
 } from "mdb-react-ui-kit";
 import MyMessage from "./MyMessage";
 import GptMessage from "./OtherMessage";
@@ -161,8 +164,6 @@ const ChatMessages = () => {
             key={`user-${index}`}
             k={`user-${index}`}
             message={m.content}
-            userName="Usuário"
-            userMail="user@gmail.com"
             isLoading={index === loadingMessageIndex && loading}
           />
         );
@@ -198,7 +199,18 @@ const ChatMessages = () => {
     <>
       <MDBRow ref={messagesEndRef}>
         <MDBCol md="6" lg="7" xl="12">
-          <MDBTypography listUnStyled>{renderMessages()}</MDBTypography>
+          <MDBTable striped>
+            <MDBTableHead>
+              <tr>
+                <th>Modelo: {gpt4 ? 'GPT-4' : 'GPT-3.5 Turbo'}</th>
+                <th></th>
+                <th></th>
+              </tr>
+            </MDBTableHead>
+            <MDBTableBody>
+              {renderMessages()}
+            </MDBTableBody>
+          </MDBTable>
         </MDBCol>
       </MDBRow>
       <MDBRow>
